@@ -9,10 +9,12 @@ services:
             - local
         volumes:
             - /var/run/docker.sock:/tmp/docker.sock:ro
+            - "${PWD}/default_location:/etc/nginx/vhost.d/default_location"
         ports:
             - "80:80"
         environment:
             - DEFAULT_HOST=admin.${MOODLE_SITE_NAME}
+            - NETWORK_ACCESS=internal
 
     templates:
         image: portainer/templates
@@ -35,6 +37,20 @@ services:
             - "9000"
         environment:
             - VIRTUAL_HOST=admin.${MOODLE_SITE_NAME}
+
+    sherpa:
+        image: djenriquez/sherpa
+        container_name: "sherpa"
+        command: --allow
+        networks:
+            - local
+        volumes:
+            - /var/run/docker.sock:/tmp/docker.sock
+        expose:
+            - "4550"
+        environment:
+            - VIRTUAL_HOST=dockerapi.${MOODLE_SITE_NAME}
+            - CONFIG=[{"Path":"/","Access":"allow","Addresses":["10.0.0.0/8","192.168.0.0/16","172.0.0.0/8","127.0.0.1"]}]
 
     stable-master:
         image: moodlehq/moodle-php-apache:7.1
