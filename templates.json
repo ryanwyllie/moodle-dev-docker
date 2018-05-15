@@ -1,0 +1,82 @@
+[
+    {
+        "type": "container",
+        "name": "pgsql",
+        "title": "Postgres",
+        "description": "PostgreSQL server for Moodle",
+        "image": "postgres:9.6.7",
+        "network": "portainer-compose_local",
+        "env": [
+            {
+                "name": "POSTGRES_USER",
+                "label": "Postgres user name",
+                "value": "moodle"
+            },
+            {
+                "name": "POSTGRES_PASSWORD",
+                "label": "Postgres password",
+                "value": "m@0dl3ing"
+            },
+            {
+                "name": "POSTGRES_DB",
+                "label": "Postgres database",
+                "value": "moodle"
+            }
+        ]
+    },
+    {
+        "type": "container",
+        "name": "stable_master_php_7.1",
+        "title": "Moodle stable master PHP 7.1",
+        "description": "Moodle on the stable master branch running with PHP v7.1",
+        "image": "moodlehq/moodle-php-apache:7.1",
+        "network": "portainer-compose_local",
+        "ports": [
+            "80/tcp",
+            "443/tcp"
+        ],
+        "volumes": [
+            {
+                "container": "/var/www/html",
+                "bind": "/Users/ryan/Code/vagrant/moodle/src/stable_master/moodle"
+            }
+        ],
+        "env": [
+            {
+                "name": "VIRTUAL_HOST",
+                "label": "URL for your Moodle instance",
+                "value": "stbm71.moodledev.site"
+            },
+            {
+                "name": "MOODLE_DOCKER_DBTYPE",
+                "label": "Database type",
+                "value": "pgsql"
+            },
+            {
+                "name": "MOODLE_DOCKER_DBNAME",
+                "label": "Database name",
+                "value": "moodle"
+            },
+            {
+                "name": "MOODLE_DOCKER_DBUSER",
+                "label": "Database user",
+                "value": "moodle"
+            },
+            {
+                "name": "MOODLE_DOCKER_DBPASS",
+                "label": "Database password",
+                "value": "m@0dl3ing"
+            },
+            {
+                "name": "MOODLE_DOCKER_DBPREFIX",
+                "label": "Database table prefix",
+                "value": "sblm71_"
+            },
+            {
+                "name": "MOODLE_DOCKER_BROWSER",
+                "label": "Browser for behat tests",
+                "value": "chrome"
+            }
+        ]
+    }
+]
