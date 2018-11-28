@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 services:
 
@@ -13,8 +13,9 @@ services:
         ports:
             - "80:80"
         environment:
-            - DEFAULT_HOST=admin.${MOODLE_SITE_NAME}
+            - DEFAULT_HOST=portainer.${MOODLE_SITE_NAME}
             - NETWORK_ACCESS=internal
+            - CONFIG=[{"Path":"/","Access":"allow","Addresses":["10.0.0.0/8","192.168.0.0/16","172.0.0.0/8","127.0.0.1"]}]
 
     templates:
         image: portainer/templates
@@ -27,7 +28,8 @@ services:
     portainer:
         image: portainer/portainer
         container_name: "portainer-app"
-        command: --templates http://templates/templates.json -H unix:///var/run/docker.sock --no-auth
+        #command: --templates http://templates/templates.json -H unix:///var/run/docker.sock --no-auth
+        command: -H unix:///var/run/docker.sock --no-auth
         networks:
             - local
         volumes:
@@ -36,7 +38,7 @@ services:
         expose:
             - "9000"
         environment:
-            - VIRTUAL_HOST=admin.${MOODLE_SITE_NAME}
+            - VIRTUAL_HOST=portainer.${MOODLE_SITE_NAME}
 
     sherpa:
         image: djenriquez/sherpa
@@ -50,208 +52,31 @@ services:
             - "4550"
         environment:
             - VIRTUAL_HOST=dockerapi.${MOODLE_SITE_NAME}
-            - CONFIG=[{"Path":"/","Access":"allow","Addresses":["10.0.0.0/8","192.168.0.0/16","172.0.0.0/8","127.0.0.1"]}]
 
-    stable-master:
-        image: moodlehq/moodle-php-apache:7.1
-        container_name: "stable-master"
+    selenium:
+        image: "selenium/standalone-chrome-debug:3.5.2"
+        container_name: "selenium"
         networks:
             - local
-            - stablemaster
         volumes:
-            - "${MOODLE_CODE_DIRECTORY}/stable_master/moodle:/var/www/html"
-        expose:
-            - "80"
-            - "443"
+            - /dev/shm:/dev/shm
+        ports:
+            - "5900:5900"
         environment:
-            - VIRTUAL_HOST=stablemaster.${MOODLE_SITE_NAME}
-            - MOODLE_DOCKER_DBTYPE=pgsql
-            - MOODLE_DOCKER_DBHOST=pgsql-master
-            - MOODLE_DOCKER_DBNAME=moodle
-            - MOODLE_DOCKER_DBUSER=moodle
-            - MOODLE_DOCKER_DBPASS=m@0dl3ing
-            - MOODLE_DOCKER_DBPREFIX=stbm
-            - MOODLE_DOCKER_BROWSER=chrome
+            - VNC_NO_PASSWORD=1
 
-    pgsql-master:
-        image: postgres:9.6.7
-        container_name: "pgsql-master"
-        networks:
-            - stablemaster
-        environment:
-            - POSTGRES_USER=moodle
-            - POSTGRES_PASSWORD=m@0dl3ing
-            - POSTGRES_DB=moodle
-
-    stable-34:
-        image: moodlehq/moodle-php-apache:7.1
-        container_name: "stable-34"
+    forge:
+        image: ryanwyllie/moodle-forge
+        container_name: "forge"
         networks:
             - local
-            - stable34
         volumes:
-            - "${MOODLE_CODE_DIRECTORY}/stable_34/moodle:/var/www/html"
-        expose:
-            - "80"
-            - "443"
+            - /var/run/docker.sock:/tmp/docker.sock
         environment:
-            - VIRTUAL_HOST=stable34.${MOODLE_SITE_NAME}
-            - MOODLE_DOCKER_DBTYPE=pgsql
-            - MOODLE_DOCKER_DBHOST=pgsql-34
-            - MOODLE_DOCKER_DBNAME=moodle
-            - MOODLE_DOCKER_DBUSER=moodle
-            - MOODLE_DOCKER_DBPASS=m@0dl3ing
-            - MOODLE_DOCKER_DBPREFIX=stb34
-            - MOODLE_DOCKER_BROWSER=chrome
-
-    pgsql-34:
-        image: postgres:9.6.7
-        container_name: "pgsql-34"
-        networks:
-            - stable34
-        environment:
-            - POSTGRES_USER=moodle
-            - POSTGRES_PASSWORD=m@0dl3ing
-            - POSTGRES_DB=moodle
-
-    stable-33:
-        image: moodlehq/moodle-php-apache:7.1
-        container_name: "stable-33"
-        networks:
-            - local
-            - stable33
-        volumes:
-            - "${MOODLE_CODE_DIRECTORY}/stable_33/moodle:/var/www/html"
-        expose:
-            - "80"
-            - "443"
-        environment:
-            - VIRTUAL_HOST=stable33.${MOODLE_SITE_NAME}
-            - MOODLE_DOCKER_DBTYPE=pgsql
-            - MOODLE_DOCKER_DBHOST=pgsql-33
-            - MOODLE_DOCKER_DBNAME=moodle
-            - MOODLE_DOCKER_DBUSER=moodle
-            - MOODLE_DOCKER_DBPASS=m@0dl3ing
-            - MOODLE_DOCKER_DBPREFIX=stb33
-            - MOODLE_DOCKER_BROWSER=chrome
-
-    pgsql-33:
-        image: postgres:9.6.7
-        container_name: "pgsql-33"
-        networks:
-            - stable33
-        environment:
-            - POSTGRES_USER=moodle
-            - POSTGRES_PASSWORD=m@0dl3ing
-            - POSTGRES_DB=moodle
-
-    integration-master:
-        image: moodlehq/moodle-php-apache:7.1
-        container_name: "integration-master"
-        networks:
-            - local
-            - integrationmaster
-        volumes:
-            - "${MOODLE_CODE_DIRECTORY}/integration_master/moodle:/var/www/html"
-        expose:
-            - "80"
-            - "443"
-        environment:
-            - VIRTUAL_HOST=integrationmaster.${MOODLE_SITE_NAME}
-            - MOODLE_DOCKER_DBTYPE=pgsql
-            - MOODLE_DOCKER_DBHOST=pgsql-int-master
-            - MOODLE_DOCKER_DBNAME=moodle
-            - MOODLE_DOCKER_DBUSER=moodle
-            - MOODLE_DOCKER_DBPASS=m@0dl3ing
-            - MOODLE_DOCKER_DBPREFIX=intm
-            - MOODLE_DOCKER_BROWSER=chrome
-
-    pgsql-int-master:
-        image: postgres:9.6.7
-        container_name: "pgsql-int-master"
-        networks:
-            - integrationmaster
-        environment:
-            - POSTGRES_USER=moodle
-            - POSTGRES_PASSWORD=m@0dl3ing
-            - POSTGRES_DB=moodle
-
-    integration-34:
-        image: moodlehq/moodle-php-apache:7.1
-        container_name: "integration-34"
-        networks:
-            - local
-            - integration34
-        volumes:
-            - "${MOODLE_CODE_DIRECTORY}/integration_34/moodle:/var/www/html"
-        expose:
-            - "80"
-            - "443"
-        environment:
-            - VIRTUAL_HOST=integration34.${MOODLE_SITE_NAME}
-            - MOODLE_DOCKER_DBTYPE=pgsql
-            - MOODLE_DOCKER_DBHOST=pgsql-int-34
-            - MOODLE_DOCKER_DBNAME=moodle
-            - MOODLE_DOCKER_DBUSER=moodle
-            - MOODLE_DOCKER_DBPASS=m@0dl3ing
-            - MOODLE_DOCKER_DBPREFIX=int34
-            - MOODLE_DOCKER_BROWSER=chrome
-
-    pgsql-int-34:
-        image: postgres:9.6.7
-        container_name: "pgsql-int-34"
-        networks:
-            - integration34
-        environment:
-            - POSTGRES_USER=moodle
-            - POSTGRES_PASSWORD=m@0dl3ing
-            - POSTGRES_DB=moodle
-
-    integration-33:
-        image: moodlehq/moodle-php-apache:7.1
-        container_name: "integration-33"
-        networks:
-            - local
-            - integration33
-        volumes:
-            - "${MOODLE_CODE_DIRECTORY}/integration_33/moodle:/var/www/html"
-        expose:
-            - "80"
-            - "443"
-        environment:
-            - VIRTUAL_HOST=integration33.${MOODLE_SITE_NAME}
-            - MOODLE_DOCKER_DBTYPE=pgsql
-            - MOODLE_DOCKER_DBHOST=pgsql-int-33
-            - MOODLE_DOCKER_DBNAME=moodle
-            - MOODLE_DOCKER_DBUSER=moodle
-            - MOODLE_DOCKER_DBPASS=m@0dl3ing
-            - MOODLE_DOCKER_DBPREFIX=int33
-            - MOODLE_DOCKER_BROWSER=chrome
-
-    pgsql-int-33:
-        image: postgres:9.6.7
-        container_name: "pgsql-int-33"
-        networks:
-            - integration33
-        environment:
-            - POSTGRES_USER=moodle
-            - POSTGRES_PASSWORD=m@0dl3ing
-            - POSTGRES_DB=moodle
+            - VIRTUAL_HOST=forge.${MOODLE_SITE_NAME}
 
 networks:
     local:
-        driver: bridge
-    stablemaster:
-        driver: bridge
-    stable34:
-        driver: bridge
-    stable33:
-        driver: bridge
-    integrationmaster:
-        driver: bridge
-    integration34:
-        driver: bridge
-    integration33:
         driver: bridge
 
 volumes:
