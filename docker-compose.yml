@@ -17,18 +17,9 @@ services:
             - NETWORK_ACCESS=internal
             - CONFIG=[{"Path":"/","Access":"allow","Addresses":["10.0.0.0/8","192.168.0.0/16","172.0.0.0/8","127.0.0.1"]}]
 
-    templates:
-        image: portainer/templates
-        container_name: "portainer-templates"
-        networks:
-            - local
-        volumes:
-            - "${PWD}/templates.json:/usr/share/nginx/html/templates.json"
-
     portainer:
         image: portainer/portainer
         container_name: "portainer-app"
-        #command: --templates http://templates/templates.json -H unix:///var/run/docker.sock --no-auth
         command: -H unix:///var/run/docker.sock --no-auth
         networks:
             - local
@@ -65,15 +56,17 @@ services:
         environment:
             - VNC_NO_PASSWORD=1
 
-    forge:
-        image: ryanwyllie/moodle-forge
-        container_name: "forge"
+    mailhog:
+        image: mailhog/mailhog
+        container_name: "mailhog"
+        #command: -ui-bind-addr 127.0.0.1:80
         networks:
             - local
-        volumes:
-            - /var/run/docker.sock:/tmp/docker.sock
+        expose:
+            - "8025"
         environment:
-            - VIRTUAL_HOST=forge.${MOODLE_SITE_NAME}
+            - VIRTUAL_HOST=mailhog.${MOODLE_SITE_NAME}
+            - VIRTUAL_PORT=8025
 
 networks:
     local:
